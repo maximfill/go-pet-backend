@@ -16,6 +16,7 @@ func Migrate(db *sql.DB) error {
 			user_id INTEGER NOT NULL REFERENCES users(id),
 			title TEXT NOT NULL,
 			completed BOOLEAN NOT NULL DEFAULT false,
+			image_url TEXT,
 			created_at TIMESTAMP NOT NULL DEFAULT NOW()
 		);
 	`)

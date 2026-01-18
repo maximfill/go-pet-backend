@@ -41,7 +41,6 @@ func (s *Service) Login(ctx context.Context, email string, password string) (int
 	user, err := s.users.GetUserByEmail(ctx, email)
 	if err != nil {
 		return 0, ErrInvalidCredentials
-
 	}
 
 	if !checkPassword(password, user.PasswordHash) {

@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/maximfill/go-pet-backend/internal/repository/postgres"
+	todoservice "github.com/maximfill/go-pet-backend/internal/service/todo"
 	userservice "github.com/maximfill/go-pet-backend/internal/service/user"
 	httptransport "github.com/maximfill/go-pet-backend/internal/transport/http"
 
@@ -40,12 +41,15 @@ func main() {
 
 	// Repository
 	repo := postgres.NewUserRepository(db)
+	todoRepo := postgres.NewTodoRepository(db)
 
 	// Service
 	service := userservice.New(repo)
+	todoService := todoservice.New(todoRepo)
 
 	// HTTP handler
 	handler := httptransport.NewUserHandler(service)
+	todoHandler := httptransport.NewTodoHandler(todoService)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -55,11 +59,18 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
 	})
+	r.Get("/todos", todoHandler.List)
 
 	r.Post("/register", handler.Register)
 	r.Post("/login", handler.Login)
 
+	r.Post("/todos", todoHandler.Create)
+	r.Patch("/todos/{id}", todoHandler.Update)
+
+	r.Delete("/todos/{id}", todoHandler.Delete)
+
 	log.Fatal(http.ListenAndServe(":8080", r))
+
 }
 
 // Routes

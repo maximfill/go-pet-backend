@@ -1,10 +1,5 @@
 package postgres
 
-// import (
-// 	"time"
-// 	"database/sql"
-// )
-
 import (
 	"context"
 	"database/sql"
