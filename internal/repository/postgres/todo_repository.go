@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -121,9 +122,9 @@ func (r *TodoRepository) UpdateTodoCompleted(
 func (r *TodoRepository) DeleteTodo(
 	ctx context.Context,
 	id int64,
-) error {
+) (bool, error) {
 
-	_, err := r.db.ExecContext(
+	res, err := r.db.ExecContext(
 		ctx,
 		`
 		DELETE FROM todos
@@ -133,9 +134,13 @@ func (r *TodoRepository) DeleteTodo(
 	)
 
 	if err != nil {
-		return fmt.Errorf("delete todo failed: id=%d: %w", id, err)
-
+		return false, fmt.Errorf("delete todo failed: id=%d: %w", id, err)
 	}
 
-	return nil
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	log.Printf("[DB] rows affected=%d for id=%d", rows, id)
+	return rows > 0, nil
 }

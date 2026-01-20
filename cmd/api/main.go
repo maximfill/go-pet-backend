@@ -1,11 +1,12 @@
 package main
 
 import (
-	// "context"
+	//"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/maximfill/go-pet-backend/internal/repository/postgres"
 	todoservice "github.com/maximfill/go-pet-backend/internal/service/todo"
@@ -54,6 +55,7 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(middleware.Timeout(2 * time.Second))
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -70,7 +72,6 @@ func main() {
 	r.Delete("/todos/{id}", todoHandler.Delete)
 
 	log.Fatal(http.ListenAndServe(":8080", r))
-
 }
 
 // Routes

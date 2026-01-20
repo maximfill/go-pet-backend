@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+
 	"github.com/go-chi/chi/v5"
 
 	todoservice "github.com/maximfill/go-pet-backend/internal/service/todo"
@@ -91,8 +92,14 @@ func (h *TodoHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.DeleteTodo(r.Context(), id); err != nil {
+	deleted, err := h.service.DeleteTodo(r.Context(), id)
+	if err != nil {
 		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+
+	if !deleted {
+		http.Error(w, "todo not found", http.StatusNotFound)
 		return
 	}
 
