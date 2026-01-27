@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package todo;
+
+option go_package = "github.com/maximfill/go-pet-backend/internal/transport/grpc/todo";
+
+service TodoService {
+  rpc CreateTodo (CreateTodoRequest) returns (CreateTodoResponse);
+  rpc ListTodos (ListTodosRequest) returns (ListTodosResponse);
+}
+
+message CreateTodoRequest {
+  string title = 1;
+}
+
+message CreateTodoResponse {
+  int64 id = 1;
+}
+
+message ListTodosRequest {}
+
+message Todo {
+  int64 id = 1;
+  string title = 2;
+  bool completed = 3;
+  string image_url = 4;
+}
+
+message ListTodosResponse {
+  repeated Todo todos = 1;
+}

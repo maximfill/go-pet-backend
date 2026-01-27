@@ -15,6 +15,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+
+	"google.golang.org/grpc" // ⬅ сам gRPC сервер библиотека (сервер, интерсепторы и т.д.)
+	"net"                    // ⬅ TCP listener нужен, чтобы открыть порт (:50051)
+
+	authgrpc "github.com/maximfill/go-pet-backend/internal/auth"
+	todogrpc "github.com/maximfill/go-pet-backend/internal/transport/grpc/todo" // твой gRPC transport слой, сгенерированный + server.go
 )
 
 func main() {
@@ -62,7 +68,6 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 	r.Get("/todos", todoHandler.List)
-
 	r.Post("/register", handler.Register)
 	r.Post("/login", handler.Login)
 
@@ -71,64 +76,24 @@ func main() {
 
 	r.Delete("/todos/{id}", todoHandler.Delete)
 
+	go func() {
+		lis, err := net.Listen("tcp", ":50051")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		grpcServer := grpc.NewServer(
+			grpc.UnaryInterceptor(authgrpc.UnaryAuthInterceptor),
+		)
+
+		todogrpc.RegisterTodoServiceServer(
+			grpcServer,
+			todogrpc.NewServer(todoService),
+		)
+
+		log.Println("gRPC server started on :50051")
+		log.Fatal(grpcServer.Serve(lis))
+	}()
+
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
-
-// Routes
-// 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-// 		w.WriteHeader(http.StatusOK) // 200
-// 		w.Write([]byte("ok"))
-// 	})
-
-// 	http.HandleFunc("/register", handler.Register) // сервер ждет когда с этого пути придет запрос
-// 	http.HandleFunc("/login", handler.Login)
-
-// 	// Server Запуск сервера (ПОСЛЕДНИЙ шаг)
-// 	log.Fatal(http.ListenAndServe(":8080", nil))
-// }
-
-// repo := postgres.NewUserRepository(db)
-// service := userservice.New(repo)
-
-// id, err := service.Register(
-// 	context.Background(),
-// 	"test@test.com",
-// 	"123456",
-// )
-// if err != nil {
-// 	log.Fatal(err)
-// }
-
-// fmt.Println("created user id:", id)
-
-//// ===== ВРЕМЕННО: тест репозитория =====
-
-// repo := postgres.NewUserRepository(db)
-
-// ctx := context.Background()
-
-//// CreateUser
-// id, err := repo.CreateUser(
-// 	ctx,
-// 	"test@example.com",
-// 	"hashed_password",
-// )
-// if err != nil {
-// 	log.Fatal("CreateUser error:", err)
-// }
-
-// fmt.Println("created user id:", id)
-
-//// GetUserByEmail
-// user, err := repo.GetUserByEmail(ctx, "test@example.com")
-// if err != nil {
-// 	log.Fatal("GetUserByEmail error:", err)
-// }
-
-// fmt.Println("user from db:")
-// fmt.Println("id:", user.ID)
-// fmt.Println("email:", user.Email)
-// fmt.Println("passwordHash:", user.PasswordHash)
-// fmt.Println("createdAt:", user.CreatedAt)
-
-// ===== КОНЕЦ временного кода =====

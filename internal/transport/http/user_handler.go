@@ -6,12 +6,17 @@ import (
 	"fmt"
 	"net/http"
 
+	auth "github.com/maximfill/go-pet-backend/internal/auth"
 	userservice "github.com/maximfill/go-pet-backend/internal/service/user"
 )
 
 type registerRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type loginResponse struct {
+	Token string `json:"token"`
 }
 
 type UserHandler struct {
@@ -59,11 +64,18 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
-
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK) // 200
-	fmt.Fprintf(w, "user logged in with id %d", id)
+	token, err := auth.GenerateJWT(id)
+	if err != nil {
+		http.Error(w, "token error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(loginResponse{
+		Token: token,
+	})
 }

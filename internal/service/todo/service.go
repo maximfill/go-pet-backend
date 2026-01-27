@@ -68,6 +68,6 @@ func (s *Service) SetCompleted(
 func (s *Service) DeleteTodo(
 	ctx context.Context,
 	todoID int64,
-) (bool,error) {
+) (bool, error) {
 	return s.todo.DeleteTodo(ctx, todoID)
 }

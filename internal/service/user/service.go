@@ -3,7 +3,9 @@ package user
 import (
 	"context"
 	"errors"
+
 	"github.com/maximfill/go-pet-backend/internal/repository/postgres"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -33,10 +35,6 @@ func (s *Service) Register(ctx context.Context, email string, password string) (
 	return s.users.CreateUser(ctx, email, hash)
 }
 
-func hashPassword(password string) (string, error) {
-	return password + "_hash", nil
-}
-
 func (s *Service) Login(ctx context.Context, email string, password string) (int64, error) {
 	user, err := s.users.GetUserByEmail(ctx, email)
 	if err != nil {
@@ -46,9 +44,25 @@ func (s *Service) Login(ctx context.Context, email string, password string) (int
 	if !checkPassword(password, user.PasswordHash) {
 		return 0, ErrInvalidCredentials
 	}
+
 	return user.ID, nil
 }
 
+func hashPassword(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword(
+		[]byte(password),
+		bcrypt.DefaultCost,
+	)
+	if err != nil {
+		return "", err
+	}
+	return string(hash), nil
+}
+
 func checkPassword(password, hash string) bool {
-	return hash == password+"_hash"
+	err := bcrypt.CompareHashAndPassword(
+		[]byte(hash),
+		[]byte(password),
+	)
+	return err == nil
 }
