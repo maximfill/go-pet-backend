@@ -28,3 +28,12 @@ docker-build:
 
 docker-up:
 	docker compose up
+
+generate-postman:
+	protoc \
+		-I proto \
+		--go_out=. \
+		--go-grpc_out=. \
+		--go_opt=module=github.com/maximfill/go-pet-backend \
+		--go-grpc_opt=module=github.com/maximfill/go-pet-backend \
+		proto/postman/echo.proto

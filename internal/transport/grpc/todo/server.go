@@ -2,6 +2,7 @@ package todo
 
 import (
 	"context"
+	"log"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -23,10 +24,11 @@ func (s *Server) CreateTodo(
 	ctx context.Context,
 	req *CreateTodoRequest,
 ) (*CreateTodoResponse, error) {
+	log.Println("gRPC CreateTodo CALLED, title =", req.Title)
 
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, status.Error(codes.Unauthenticated, "no user")
+	userID, err := mustUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	id, err := s.service.CreateTodo(ctx, userID, req.Title)
@@ -44,9 +46,9 @@ func (s *Server) ListTodos(
 	req *ListTodosRequest,
 ) (*ListTodosResponse, error) {
 
-	userID, ok := auth.UserIDFromContext(ctx)
-	if !ok {
-		return nil, status.Error(codes.Unauthenticated, "no user")
+	userID, err := mustUserID(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	todos, err := s.service.GetTodosByUser(ctx, userID)
@@ -68,4 +70,12 @@ func (s *Server) ListTodos(
 	}
 
 	return resp, nil
+}
+
+func mustUserID(ctx context.Context) (int64, error) {
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return 0, status.Error(codes.Unauthenticated, "no user")
+	}
+	return userID, nil
 }

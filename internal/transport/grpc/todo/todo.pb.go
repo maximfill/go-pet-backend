@@ -23,8 +23,7 @@ const (
 
 type CreateTodoRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Title         string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -57,13 +56,6 @@ func (x *CreateTodoRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use CreateTodoRequest.ProtoReflect.Descriptor instead.
 func (*CreateTodoRequest) Descriptor() ([]byte, []int) {
 	return file_todo_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *CreateTodoRequest) GetUserId() int64 {
-	if x != nil {
-		return x.UserId
-	}
-	return 0
 }
 
 func (x *CreateTodoRequest) GetTitle() string {
@@ -119,7 +111,6 @@ func (x *CreateTodoResponse) GetId() int64 {
 
 type ListTodosRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -152,13 +143,6 @@ func (x *ListTodosRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use ListTodosRequest.ProtoReflect.Descriptor instead.
 func (*ListTodosRequest) Descriptor() ([]byte, []int) {
 	return file_todo_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *ListTodosRequest) GetUserId() int64 {
-	if x != nil {
-		return x.UserId
-	}
-	return 0
 }
 
 type Todo struct {
@@ -278,14 +262,12 @@ var File_todo_proto protoreflect.FileDescriptor
 const file_todo_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
-	"todo.proto\x12\x04todo\"B\n" +
-	"\x11CreateTodoRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x14\n" +
-	"\x05title\x18\x02 \x01(\tR\x05title\"$\n" +
+	"todo.proto\x12\x04todo\")\n" +
+	"\x11CreateTodoRequest\x12\x14\n" +
+	"\x05title\x18\x01 \x01(\tR\x05title\"$\n" +
 	"\x12CreateTodoResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\"+\n" +
-	"\x10ListTodosRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\x03R\x06userId\"g\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\"\x12\n" +
+	"\x10ListTodosRequest\"g\n" +
 	"\x04Todo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x1c\n" +

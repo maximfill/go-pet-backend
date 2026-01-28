@@ -1,97 +1,88 @@
 package main
 
 import (
-	//"context"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"google.golang.org/grpc"
+
+	"github.com/maximfill/go-pet-backend/internal/auth"
+	postman "github.com/maximfill/go-pet-backend/internal/clients/postman"
 	"github.com/maximfill/go-pet-backend/internal/repository/postgres"
 	todoservice "github.com/maximfill/go-pet-backend/internal/service/todo"
 	userservice "github.com/maximfill/go-pet-backend/internal/service/user"
+	grpcTodo "github.com/maximfill/go-pet-backend/internal/transport/grpc/todo"
 	httptransport "github.com/maximfill/go-pet-backend/internal/transport/http"
-
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-
-	"google.golang.org/grpc" // ⬅ сам gRPC сервер библиотека (сервер, интерсепторы и т.д.)
-	"net"                    // ⬅ TCP listener нужен, чтобы открыть порт (:50051)
-
-	authgrpc "github.com/maximfill/go-pet-backend/internal/auth"
-	todogrpc "github.com/maximfill/go-pet-backend/internal/transport/grpc/todo" // твой gRPC transport слой, сгенерированный + server.go
 )
 
 func main() {
 	fmt.Println("API started")
 
-	// 1. Конфигурация БД
-	cfg := postgres.Config{
+	// ===== DB =====
+	db, err := postgres.New(postgres.Config{
 		Host:     os.Getenv("DB_HOST"),
 		Port:     os.Getenv("DB_PORT"),
 		User:     os.Getenv("DB_USER"),
 		Password: os.Getenv("DB_PASSWORD"),
 		DBName:   os.Getenv("DB_NAME"),
-	}
-
-	// 2. Подключение к БД
-	db, err := postgres.New(cfg)
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// 3. Миграции
 	if err := postgres.Migrate(db); err != nil {
 		log.Fatal(err)
 	}
 
-	// Repository
-	repo := postgres.NewUserRepository(db)
+	// ===== Repos =====
+	userRepo := postgres.NewUserRepository(db)
 	todoRepo := postgres.NewTodoRepository(db)
 
-	// Service
-	service := userservice.New(repo)
-	todoService := todoservice.New(todoRepo)
+	// ===== External gRPC =====
+	postmanConn, err := postman.NewConn("grpc.postman-echo.com:443")
+	if err != nil {
+		log.Fatal(err)
+	}
+	echoClient := postman.NewEchoClient(postmanConn)
 
-	// HTTP handler
-	handler := httptransport.NewUserHandler(service)
-	todoHandler := httptransport.NewTodoHandler(todoService)
+	// ===== Services =====
+	userService := userservice.New(userRepo)
+	todoService := todoservice.New(todoRepo, echoClient)
 
+	// ===== HTTP =====
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(2 * time.Second))
 
-	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
-	})
-	r.Get("/todos", todoHandler.List)
-	r.Post("/register", handler.Register)
-	r.Post("/login", handler.Login)
+	userHandler := httptransport.NewUserHandler(userService)
+	todoHandler := httptransport.NewTodoHandler(todoService)
 
+	r.Post("/register", userHandler.Register)
+	r.Post("/login", userHandler.Login)
 	r.Post("/todos", todoHandler.Create)
-	r.Patch("/todos/{id}", todoHandler.Update)
+	r.Get("/todos", todoHandler.List)
 
-	r.Delete("/todos/{id}", todoHandler.Delete)
-
+	// ===== gRPC =====
 	go func() {
-		lis, err := net.Listen("tcp", ":50051")
-		if err != nil {
-			log.Fatal(err)
-		}
+		lis, _ := net.Listen("tcp", ":50051")
 
 		grpcServer := grpc.NewServer(
-			grpc.UnaryInterceptor(authgrpc.UnaryAuthInterceptor),
+			grpc.UnaryInterceptor(auth.UnaryAuthInterceptor),
 		)
 
-		todogrpc.RegisterTodoServiceServer(
+		grpcTodo.RegisterTodoServiceServer(
 			grpcServer,
-			todogrpc.NewServer(todoService),
+			grpcTodo.NewServer(todoService),
 		)
 
-		log.Println("gRPC server started on :50051")
+		log.Println("gRPC started on :50051")
 		log.Fatal(grpcServer.Serve(lis))
 	}()
 

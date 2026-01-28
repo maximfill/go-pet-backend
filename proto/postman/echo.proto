@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package postman.echo;
+
+option go_package = "github.com/maximfill/go-pet-backend/internal/clients/postman/pb";
+
+service EchoService {
+  rpc UnaryEcho (EchoRequest) returns (EchoResponse);
+}
+
+message EchoRequest {
+  string message = 1;
+}
+
+message EchoResponse {
+  string message = 1;
+}
