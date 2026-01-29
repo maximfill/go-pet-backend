@@ -68,6 +68,7 @@ func main() {
 	r.Post("/login", userHandler.Login)
 	r.Post("/todos", todoHandler.Create)
 	r.Get("/todos", todoHandler.List)
+	r.Delete("/todos/{id}", todoHandler.Delete)
 
 	// ===== gRPC =====
 	go func() {

@@ -8,8 +8,6 @@ import (
 	"github.com/maximfill/go-pet-backend/internal/repository/postgres"
 )
 
-// internal/service/todo/service.go
-
 type Echo interface {
 	Echo(ctx context.Context, msg string) error
 }

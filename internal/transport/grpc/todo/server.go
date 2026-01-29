@@ -79,3 +79,22 @@ func mustUserID(ctx context.Context) (int64, error) {
 	}
 	return userID, nil
 }
+
+func (s *Server) DeleteTodo(
+	ctx context.Context,
+	req *DeleteTodoRequest,
+) (*DeleteTodoResponse, error) {
+
+	deleted, err := s.service.DeleteTodo(ctx, req.Id)
+	if err != nil {
+		return nil, status.Errorf(
+			codes.Internal,
+			"delete todo failed: %v",
+			err,
+		)
+	}
+
+	return &DeleteTodoResponse{
+		Success: deleted,
+	}, nil
+}

@@ -31,9 +31,9 @@ docker-up:
 
 generate-postman:
 	protoc \
-		-I proto \
-		--go_out=. \
-		--go-grpc_out=. \
-		--go_opt=module=github.com/maximfill/go-pet-backend \
-		--go-grpc_opt=module=github.com/maximfill/go-pet-backend \
-		proto/postman/echo.proto
+  -I proto \
+  --go_out=./internal/transport/grpc \
+  --go-grpc_out=./internal/transport/grpc \
+  --go_opt=module=github.com/maximfill/go-pet-backend \
+  --go-grpc_opt=module=github.com/maximfill/go-pet-backend \
+  proto/*.proto
