@@ -8,16 +8,23 @@ import (
 	"github.com/maximfill/go-pet-backend/internal/repository/postgres"
 )
 
+type TodoRepository interface {
+	CreateTodo(ctx context.Context, userID int64, title string, imageURL *string) (int64, error)
+	GetTodosByUser(ctx context.Context, userID int64) ([]postgres.Todo, error)
+	UpdateTodoCompleted(ctx context.Context, todoID int64, completed bool) error
+	DeleteTodo(ctx context.Context, todoID int64) (bool, error)
+}
+
 type Echo interface {
 	Echo(ctx context.Context, msg string) error
 }
 
 type Service struct {
-	repo *postgres.TodoRepository
+	repo TodoRepository
 	echo Echo
 }
 
-func New(repo *postgres.TodoRepository, echo Echo) *Service {
+func New(repo TodoRepository, echo Echo) *Service {
 	return &Service{
 		repo: repo,
 		echo: echo,
@@ -30,16 +37,14 @@ func (s *Service) CreateTodo(
 	title string,
 ) (int64, error) {
 
-	//  вызов внешнего сервиса
 	if s.echo != nil {
-		log.Println("sending echo:", "что отправил то и вернул")
+		log.Println("sending echo")
 		_ = s.echo.Echo(ctx, "todo created")
 	}
 
-	// бизнес-логика
 	imageURL, err := fetchRandomImage(ctx)
 	if err != nil {
-		imageURL = nil // допустимо
+		imageURL = nil
 	}
 
 	return s.repo.CreateTodo(ctx, userID, title, imageURL)
