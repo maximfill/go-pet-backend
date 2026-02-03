@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package postman.echo;
 
-option go_package = "github.com/maximfill/go-pet-backend/internal/clients/postman/pb";
+option go_package = "github.com/maximfill/go-pet-backend/internal/clients/pb";
 
 service EchoService {
   rpc UnaryEcho (EchoRequest) returns (EchoResponse);

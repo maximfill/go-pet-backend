@@ -29,7 +29,7 @@ docker-build:
 docker-up:
 	docker compose up
 
-generate-postman:
+generate-clients:
 	protoc \
   -I proto \
   --go_out=./internal/transport/grpc \

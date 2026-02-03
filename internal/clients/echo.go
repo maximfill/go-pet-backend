@@ -1,11 +1,11 @@
-package postman
+package clients
 
 import (
 	"context"
 
 	"google.golang.org/grpc"
 
-	pb "github.com/maximfill/go-pet-backend/internal/clients/postman/pb"
+	pb "github.com/maximfill/go-pet-backend/internal/clients/pb"
 )
 
 type EchoClient struct {

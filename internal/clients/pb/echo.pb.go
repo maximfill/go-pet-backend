@@ -119,7 +119,7 @@ const file_postman_echo_proto_rawDesc = "" +
 	"\fEchoResponse\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\tR\amessage2Q\n" +
 	"\vEchoService\x12B\n" +
-	"\tUnaryEcho\x12\x19.postman.echo.EchoRequest\x1a\x1a.postman.echo.EchoResponseBAZ?github.com/maximfill/go-pet-backend/internal/clients/postman/pbb\x06proto3"
+	"\tUnaryEcho\x12\x19.postman.echo.EchoRequest\x1a\x1a.postman.echo.EchoResponseBAZ?github.com/maximfill/go-pet-backend/internal/clients/pbb\x06proto3"
 
 var (
 	file_postman_echo_proto_rawDescOnce sync.Once

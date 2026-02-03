@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/maximfill/go-pet-backend/internal/auth"
-	postman "github.com/maximfill/go-pet-backend/internal/clients/postman"
+	postman "github.com/maximfill/go-pet-backend/internal/clients"
 	"github.com/maximfill/go-pet-backend/internal/repository/postgres"
 	todoservice "github.com/maximfill/go-pet-backend/internal/service/todo"
 	userservice "github.com/maximfill/go-pet-backend/internal/service/user"
@@ -53,7 +53,10 @@ func main() {
 
 	// ===== Services =====
 	userService := userservice.New(userRepo)
-	todoService := todoservice.New(todoRepo, echoClient)
+	todoService := todoservice.New(
+		todoRepo,
+		echoClient,
+	)
 
 	// ===== HTTP =====
 	r := chi.NewRouter()
@@ -64,11 +67,18 @@ func main() {
 	userHandler := httptransport.NewUserHandler(userService)
 	todoHandler := httptransport.NewTodoHandler(todoService)
 
+	// ---------- PUBLIC ----------
 	r.Post("/register", userHandler.Register)
 	r.Post("/login", userHandler.Login)
-	r.Post("/todos", todoHandler.Create)
-	r.Get("/todos", todoHandler.List)
-	r.Delete("/todos/{id}", todoHandler.Delete)
+
+	// ---------- PROTECTED ----------
+	r.Group(func(r chi.Router) {
+		r.Use(httptransport.AuthMiddleware)
+
+		r.Post("/todos", todoHandler.Create)
+		r.Get("/todos", todoHandler.List)
+		r.Delete("/todos/{id}", todoHandler.Delete)
+	})
 
 	// ===== gRPC =====
 	go func() {
